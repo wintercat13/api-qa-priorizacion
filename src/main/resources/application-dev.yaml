@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/qa_priorizacion
+    username: ${DB_USERNAME:qa_priorizacion}
+    password: ${DB_PASSWORD:qa_priorizacion}
+  jpa:
+    show-sql: true
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 2
+    baseline-description: "Esquema ya existente, aplicado manualmente desde Modelo de Base de Datos.sql"
+
+logging:
+  level:
+    com.qapriorizacion.api: DEBUG
+    org.springframework.security: DEBUG

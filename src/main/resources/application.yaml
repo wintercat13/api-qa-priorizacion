@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: api-qa-priorizacion
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+jwt:
+  secret: ${JWT_SECRET:dev-only-secret-change-me-dev-only-secret-change-me}
+  expiration-minutes: 30
