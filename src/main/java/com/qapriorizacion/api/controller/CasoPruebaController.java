@@ -11,10 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/casos-prueba")
@@ -30,5 +33,11 @@ public class CasoPruebaController {
             @AuthenticationPrincipal UserDetails userDetails) {
         CasoPruebaResponse creado = casoPruebaService.crear(request, userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(creado));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<CasoPruebaResponse>>> listar() {
+        List<CasoPruebaResponse> casos = casoPruebaService.listar();
+        return ResponseEntity.ok(ApiResponse.success(casos));
     }
 }

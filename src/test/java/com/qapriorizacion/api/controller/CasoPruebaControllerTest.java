@@ -21,11 +21,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -131,5 +133,26 @@ class CasoPruebaControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "QA_TESTER")
+    void listar_deberiaRetornar200YCuerpoSuccess() throws Exception {
+        List<CasoPruebaResponse> casos = List.of(
+                new CasoPruebaResponse(1L, "Caso 1", "Desc 1", "Módulo A", Criticidad.ALTA, EstadoCasoPrueba.PENDIENTE, BigDecimal.ZERO, 3L),
+                new CasoPruebaResponse(2L, "Caso 2", null, "Módulo B", Criticidad.MEDIA, EstadoCasoPrueba.EN_CURSO, BigDecimal.ONE, 4L)
+        );
+
+        when(casoPruebaService.listar()).thenReturn(casos);
+
+        mockMvc.perform(get("/api/v1/casos-prueba")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].titulo").value("Caso 1"))
+                .andExpect(jsonPath("$.data[1].estado").value("EN_CURSO"));
     }
 }

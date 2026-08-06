@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +50,14 @@ public class CasoPruebaServiceImpl implements CasoPruebaService {
 
         CasoPrueba guardado = casoPruebaRepository.save(caso);
         return mapear(guardado);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CasoPruebaResponse> listar() {
+        return casoPruebaRepository.findAll().stream()
+                .map(this::mapear)
+                .toList();
     }
 
     private CasoPruebaResponse mapear(CasoPrueba caso) {

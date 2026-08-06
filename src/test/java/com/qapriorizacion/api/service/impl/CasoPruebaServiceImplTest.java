@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,5 +105,29 @@ class CasoPruebaServiceImplTest {
         assertThatThrownBy(() -> casoPruebaService.crear(request, correo))
                 .isInstanceOf(RecursoNoEncontradoException.class)
                 .hasMessage("Usuario responsable no encontrado");
+    }
+
+    @Test
+    void listar_deberiaRetornarTodosLosCasos() {
+        Usuario responsable = Usuario.builder().id(1L).build();
+        Requisito requisito = Requisito.builder().id(3L).build();
+        CasoPrueba c1 = CasoPrueba.builder()
+                .id(1L).titulo("Caso 1").descripcion("Desc 1").modulo("Módulo A")
+                .criticidad(Criticidad.ALTA).estado(EstadoCasoPrueba.PENDIENTE)
+                .scorePrioridad(BigDecimal.ZERO).responsable(responsable).requisito(requisito)
+                .build();
+        CasoPrueba c2 = CasoPrueba.builder()
+                .id(2L).titulo("Caso 2").modulo("Módulo B")
+                .criticidad(Criticidad.MEDIA).estado(EstadoCasoPrueba.EN_CURSO)
+                .scorePrioridad(BigDecimal.ONE).responsable(responsable).requisito(requisito)
+                .build();
+
+        when(casoPruebaRepository.findAll()).thenReturn(List.of(c1, c2));
+
+        List<CasoPruebaResponse> response = casoPruebaService.listar();
+
+        assertThat(response).hasSize(2);
+        assertThat(response.get(0).titulo()).isEqualTo("Caso 1");
+        assertThat(response.get(1).estado()).isEqualTo(EstadoCasoPrueba.EN_CURSO);
     }
 }
