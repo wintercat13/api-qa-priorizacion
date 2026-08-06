@@ -44,8 +44,12 @@ public class JwtService {
     }
 
     public boolean esTokenValido(String token, UserDetails userDetails) {
-        String correo = extraerCorreo(token);
-        return correo.equals(userDetails.getUsername()) && !estaExpirado(token);
+        try {
+            String correo = extraerCorreo(token);
+            return correo.equals(userDetails.getUsername()) && !estaExpirado(token);
+        } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+            return false;
+        }
     }
 
     private boolean estaExpirado(String token) {
