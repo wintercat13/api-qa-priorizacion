@@ -1,6 +1,7 @@
 package com.qapriorizacion.api.service.impl;
 
 import com.qapriorizacion.api.dto.request.CasoPruebaRequest;
+import com.qapriorizacion.api.dto.request.CasoPruebaUpdateRequest;
 import com.qapriorizacion.api.dto.response.CasoPruebaResponse;
 import com.qapriorizacion.api.entity.CasoPrueba;
 import com.qapriorizacion.api.entity.Requisito;
@@ -9,9 +10,12 @@ import com.qapriorizacion.api.entity.enums.Criticidad;
 import com.qapriorizacion.api.entity.enums.EstadoCasoPrueba;
 import com.qapriorizacion.api.entity.enums.RolUsuario;
 import com.qapriorizacion.api.exception.RecursoNoEncontradoException;
+import com.qapriorizacion.api.exception.TransicionEstadoInvalidaException;
 import com.qapriorizacion.api.repository.CasoPruebaRepository;
 import com.qapriorizacion.api.repository.RequisitoRepository;
 import com.qapriorizacion.api.repository.UsuarioRepository;
+import com.qapriorizacion.api.service.PrioridadService;
+import com.qapriorizacion.api.validation.TransicionEstadoValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,6 +43,12 @@ class CasoPruebaServiceImplTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private TransicionEstadoValidator transicionEstadoValidator;
+
+    @Mock
+    private PrioridadService prioridadService;
 
     @InjectMocks
     private CasoPruebaServiceImpl casoPruebaService;
@@ -129,5 +139,80 @@ class CasoPruebaServiceImplTest {
         assertThat(response).hasSize(2);
         assertThat(response.get(0).titulo()).isEqualTo("Caso 1");
         assertThat(response.get(1).estado()).isEqualTo(EstadoCasoPrueba.EN_CURSO);
+    }
+
+    @Test
+    void actualizar_deberiaCambiarEstadoYRecalcularScore_cuandoTransicionEsValida() {
+        Long id = 104L;
+        CasoPruebaUpdateRequest request = new CasoPruebaUpdateRequest(
+                null, null, null, Criticidad.ALTA, EstadoCasoPrueba.EN_CURSO);
+        Usuario responsable = Usuario.builder().id(1L).build();
+        Requisito requisito = Requisito.builder().id(3L).build();
+        CasoPrueba caso = CasoPrueba.builder()
+                .id(id).titulo("Caso").modulo("Módulo").criticidad(Criticidad.MEDIA)
+                .estado(EstadoCasoPrueba.PENDIENTE).scorePrioridad(BigDecimal.valueOf(6.0))
+                .contadorFallos(0).responsable(responsable).requisito(requisito)
+                .build();
+
+        when(casoPruebaRepository.findById(id)).thenReturn(Optional.of(caso));
+        when(transicionEstadoValidator.esValida(EstadoCasoPrueba.PENDIENTE, EstadoCasoPrueba.EN_CURSO)).thenReturn(true);
+        when(prioridadService.calcularScore(Criticidad.ALTA, 0)).thenReturn(BigDecimal.valueOf(9.0));
+        when(casoPruebaRepository.save(any(CasoPrueba.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CasoPruebaResponse response = casoPruebaService.actualizar(id, request);
+
+        assertThat(response.estado()).isEqualTo(EstadoCasoPrueba.EN_CURSO);
+        assertThat(response.criticidad()).isEqualTo(Criticidad.ALTA);
+        assertThat(response.scorePrioridad()).isEqualByComparingTo(BigDecimal.valueOf(9.0));
+    }
+
+    @Test
+    void actualizar_deberiaLanzarExcepcion_cuandoTransicionEsInvalida() {
+        Long id = 104L;
+        CasoPruebaUpdateRequest request = new CasoPruebaUpdateRequest(
+                null, null, null, Criticidad.MEDIA, EstadoCasoPrueba.EJECUTADO);
+        Usuario responsable = Usuario.builder().id(1L).build();
+        Requisito requisito = Requisito.builder().id(3L).build();
+        CasoPrueba caso = CasoPrueba.builder()
+                .id(id).titulo("Caso").modulo("Módulo").criticidad(Criticidad.MEDIA)
+                .estado(EstadoCasoPrueba.PENDIENTE).scorePrioridad(BigDecimal.valueOf(6.0))
+                .responsable(responsable).requisito(requisito)
+                .build();
+
+        when(casoPruebaRepository.findById(id)).thenReturn(Optional.of(caso));
+        when(transicionEstadoValidator.esValida(EstadoCasoPrueba.PENDIENTE, EstadoCasoPrueba.EJECUTADO)).thenReturn(false);
+
+        assertThatThrownBy(() -> casoPruebaService.actualizar(id, request))
+                .isInstanceOf(TransicionEstadoInvalidaException.class)
+                .hasMessageContaining("Transición de estado no permitida");
+    }
+
+    @Test
+    void obtener_deberiaRetornarCaso_cuandoExiste() {
+        Long id = 104L;
+        Usuario responsable = Usuario.builder().id(1L).build();
+        Requisito requisito = Requisito.builder().id(3L).build();
+        CasoPrueba caso = CasoPrueba.builder()
+                .id(id).titulo("Caso").modulo("Módulo").criticidad(Criticidad.ALTA)
+                .estado(EstadoCasoPrueba.PENDIENTE).scorePrioridad(BigDecimal.ZERO)
+                .responsable(responsable).requisito(requisito)
+                .build();
+
+        when(casoPruebaRepository.findById(id)).thenReturn(Optional.of(caso));
+
+        CasoPruebaResponse response = casoPruebaService.obtener(id);
+
+        assertThat(response.id()).isEqualTo(id);
+        assertThat(response.titulo()).isEqualTo("Caso");
+    }
+
+    @Test
+    void obtener_deberiaLanzarRecursoNoEncontrado_cuandoNoExiste() {
+        Long id = 999L;
+        when(casoPruebaRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> casoPruebaService.obtener(id))
+                .isInstanceOf(RecursoNoEncontradoException.class)
+                .hasMessage("Caso de prueba no encontrado");
     }
 }

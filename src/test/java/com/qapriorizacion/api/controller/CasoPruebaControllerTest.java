@@ -2,6 +2,7 @@ package com.qapriorizacion.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qapriorizacion.api.dto.request.CasoPruebaRequest;
+import com.qapriorizacion.api.dto.request.CasoPruebaUpdateRequest;
 import com.qapriorizacion.api.dto.response.CasoPruebaResponse;
 import com.qapriorizacion.api.entity.enums.Criticidad;
 import com.qapriorizacion.api.entity.enums.EstadoCasoPrueba;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -69,7 +71,8 @@ class CasoPruebaControllerTest {
                 request.criticidad(),
                 EstadoCasoPrueba.PENDIENTE,
                 BigDecimal.ZERO,
-                3L
+                3L,
+                null
         );
 
         when(casoPruebaService.crear(any(CasoPruebaRequest.class), eq("tester@banco.cl"))).thenReturn(response);
@@ -139,8 +142,8 @@ class CasoPruebaControllerTest {
     @WithMockUser(roles = "QA_TESTER")
     void listar_deberiaRetornar200YCuerpoSuccess() throws Exception {
         List<CasoPruebaResponse> casos = List.of(
-                new CasoPruebaResponse(1L, "Caso 1", "Desc 1", "Módulo A", Criticidad.ALTA, EstadoCasoPrueba.PENDIENTE, BigDecimal.ZERO, 3L),
-                new CasoPruebaResponse(2L, "Caso 2", null, "Módulo B", Criticidad.MEDIA, EstadoCasoPrueba.EN_CURSO, BigDecimal.ONE, 4L)
+                new CasoPruebaResponse(1L, "Caso 1", "Desc 1", "Módulo A", Criticidad.ALTA, EstadoCasoPrueba.PENDIENTE, BigDecimal.ZERO, 3L, null),
+                new CasoPruebaResponse(2L, "Caso 2", null, "Módulo B", Criticidad.MEDIA, EstadoCasoPrueba.EN_CURSO, BigDecimal.ONE, 4L, null)
         );
 
         when(casoPruebaService.listar()).thenReturn(casos);
@@ -154,5 +157,44 @@ class CasoPruebaControllerTest {
                 .andExpect(jsonPath("$.data.length()").value(2))
                 .andExpect(jsonPath("$.data[0].titulo").value("Caso 1"))
                 .andExpect(jsonPath("$.data[1].estado").value("EN_CURSO"));
+    }
+
+    @Test
+    @WithMockUser(roles = "QA_TESTER")
+    void obtener_deberiaRetornar200YCuerpoSuccess() throws Exception {
+        Long id = 104L;
+        CasoPruebaResponse response = new CasoPruebaResponse(
+                id, "Caso", "Desc", "Módulo", Criticidad.ALTA, EstadoCasoPrueba.PENDIENTE, BigDecimal.ZERO, 3L, null);
+
+        when(casoPruebaService.obtener(id)).thenReturn(response);
+
+        mockMvc.perform(get("/api/v1/casos-prueba/{id}", id)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value(104))
+                .andExpect(jsonPath("$.data.titulo").value("Caso"));
+    }
+
+    @Test
+    @WithMockUser(roles = "QA_TESTER")
+    void actualizar_deberiaRetornar200YCuerpoSuccess() throws Exception {
+        Long id = 104L;
+        CasoPruebaUpdateRequest request = new CasoPruebaUpdateRequest(
+                null, null, null, Criticidad.ALTA, EstadoCasoPrueba.EN_CURSO);
+        CasoPruebaResponse response = new CasoPruebaResponse(
+                id, "Caso", "Desc", "Módulo", Criticidad.ALTA, EstadoCasoPrueba.EN_CURSO, BigDecimal.valueOf(9.0), 3L, null);
+
+        when(casoPruebaService.actualizar(eq(id), any(CasoPruebaUpdateRequest.class))).thenReturn(response);
+
+        mockMvc.perform(put("/api/v1/casos-prueba/{id}", id)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.estado").value("EN_CURSO"))
+                .andExpect(jsonPath("$.data.scorePrioridad").value(9.0));
     }
 }

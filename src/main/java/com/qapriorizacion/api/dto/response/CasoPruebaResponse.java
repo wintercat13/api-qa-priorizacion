@@ -4,6 +4,7 @@ import com.qapriorizacion.api.entity.enums.Criticidad;
 import com.qapriorizacion.api.entity.enums.EstadoCasoPrueba;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 
 public record CasoPruebaResponse(
         Long id,
@@ -13,6 +14,7 @@ public record CasoPruebaResponse(
         Criticidad criticidad,
         EstadoCasoPrueba estado,
         BigDecimal scorePrioridad,
-        Long requisitoId
+        Long requisitoId,
+        OffsetDateTime fechaActualizacion
 ) {
 }
