@@ -4,6 +4,7 @@ import com.qapriorizacion.api.dto.request.CasoPruebaRequest;
 import com.qapriorizacion.api.dto.request.CasoPruebaUpdateRequest;
 import com.qapriorizacion.api.dto.request.VerificarDuplicidadRequest;
 import com.qapriorizacion.api.dto.response.CasoObsoletoResponse;
+import com.qapriorizacion.api.dto.response.CasoPriorizadoResponse;
 import com.qapriorizacion.api.dto.response.CasoPruebaResponse;
 import com.qapriorizacion.api.dto.response.DuplicidadResponse;
 import com.qapriorizacion.api.entity.CasoPrueba;
@@ -37,6 +38,8 @@ public class CasoPruebaServiceImpl implements CasoPruebaService {
 
     private static final BigDecimal UMBRAL_SIMILITUD = BigDecimal.valueOf(0.70);
     private static final int MESES_INACTIVIDAD_OBSOLESCENCIA = 6;
+    private static final List<EstadoCasoPrueba> ESTADOS_COLA_PRIORIZADA = List.of(
+            EstadoCasoPrueba.PENDIENTE, EstadoCasoPrueba.EN_CURSO, EstadoCasoPrueba.BLOQUEADO);
 
     private final CasoPruebaRepository casoPruebaRepository;
     private final RequisitoRepository requisitoRepository;
@@ -170,6 +173,21 @@ public class CasoPruebaServiceImpl implements CasoPruebaService {
         OffsetDateTime fechaLimite = OffsetDateTime.now(ZoneOffset.UTC).minusMonths(MESES_INACTIVIDAD_OBSOLESCENCIA);
         List<EstadoCasoPrueba> estadosExcluidos = List.of(EstadoCasoPrueba.OBSOLETO, EstadoCasoPrueba.ARCHIVADO);
         return casoPruebaRepository.marcarCasosObsoletos(estadosExcluidos, fechaLimite);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CasoPriorizadoResponse> listarColaPriorizada(String modulo) {
+        List<CasoPrueba> casos;
+        if (modulo == null || modulo.isBlank()) {
+            casos = casoPruebaRepository.findByEstadoInOrderByScorePrioridadDesc(ESTADOS_COLA_PRIORIZADA);
+        } else {
+            casos = casoPruebaRepository.findByModuloIgnoreCaseAndEstadoInOrderByScorePrioridadDesc(
+                    modulo.trim(), ESTADOS_COLA_PRIORIZADA);
+        }
+        return casos.stream()
+                .map(c -> new CasoPriorizadoResponse(c.getId(), c.getTitulo(), c.getModulo(), c.getScorePrioridad()))
+                .toList();
     }
 
     private void evaluarDuplicidad(CasoPrueba caso) {

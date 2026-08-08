@@ -4,6 +4,7 @@ import com.qapriorizacion.api.dto.request.CasoPruebaRequest;
 import com.qapriorizacion.api.dto.request.CasoPruebaUpdateRequest;
 import com.qapriorizacion.api.dto.request.VerificarDuplicidadRequest;
 import com.qapriorizacion.api.dto.response.CasoObsoletoResponse;
+import com.qapriorizacion.api.dto.response.CasoPriorizadoResponse;
 import com.qapriorizacion.api.dto.response.CasoPruebaResponse;
 import com.qapriorizacion.api.dto.response.DuplicidadResponse;
 
@@ -28,4 +29,6 @@ public interface CasoPruebaService {
     CasoPruebaResponse archivar(Long id);
 
     int ejecutarRevisionObsolescencia();
+
+    List<CasoPriorizadoResponse> listarColaPriorizada(String modulo);
 }
