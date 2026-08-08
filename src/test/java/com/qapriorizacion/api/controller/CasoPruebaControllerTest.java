@@ -3,7 +3,10 @@ package com.qapriorizacion.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qapriorizacion.api.dto.request.CasoPruebaRequest;
 import com.qapriorizacion.api.dto.request.CasoPruebaUpdateRequest;
+import com.qapriorizacion.api.dto.request.VerificarDuplicidadRequest;
+import com.qapriorizacion.api.dto.response.CasoObsoletoResponse;
 import com.qapriorizacion.api.dto.response.CasoPruebaResponse;
+import com.qapriorizacion.api.dto.response.DuplicidadResponse;
 import com.qapriorizacion.api.entity.enums.Criticidad;
 import com.qapriorizacion.api.entity.enums.EstadoCasoPrueba;
 import com.qapriorizacion.api.security.JwtAuthFilter;
@@ -22,6 +25,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -71,7 +75,11 @@ class CasoPruebaControllerTest {
                 request.criticidad(),
                 EstadoCasoPrueba.PENDIENTE,
                 BigDecimal.ZERO,
+                false,
+                null,
+                null,
                 3L,
+                null,
                 null
         );
 
@@ -142,8 +150,8 @@ class CasoPruebaControllerTest {
     @WithMockUser(roles = "QA_TESTER")
     void listar_deberiaRetornar200YCuerpoSuccess() throws Exception {
         List<CasoPruebaResponse> casos = List.of(
-                new CasoPruebaResponse(1L, "Caso 1", "Desc 1", "Módulo A", Criticidad.ALTA, EstadoCasoPrueba.PENDIENTE, BigDecimal.ZERO, 3L, null),
-                new CasoPruebaResponse(2L, "Caso 2", null, "Módulo B", Criticidad.MEDIA, EstadoCasoPrueba.EN_CURSO, BigDecimal.ONE, 4L, null)
+                new CasoPruebaResponse(1L, "Caso 1", "Desc 1", "Módulo A", Criticidad.ALTA, EstadoCasoPrueba.PENDIENTE, BigDecimal.ZERO, false, null, null, 3L, null, null),
+                new CasoPruebaResponse(2L, "Caso 2", null, "Módulo B", Criticidad.MEDIA, EstadoCasoPrueba.EN_CURSO, BigDecimal.ONE, false, null, null, 4L, null, null)
         );
 
         when(casoPruebaService.listar()).thenReturn(casos);
@@ -164,7 +172,7 @@ class CasoPruebaControllerTest {
     void obtener_deberiaRetornar200YCuerpoSuccess() throws Exception {
         Long id = 104L;
         CasoPruebaResponse response = new CasoPruebaResponse(
-                id, "Caso", "Desc", "Módulo", Criticidad.ALTA, EstadoCasoPrueba.PENDIENTE, BigDecimal.ZERO, 3L, null);
+                id, "Caso", "Desc", "Módulo", Criticidad.ALTA, EstadoCasoPrueba.PENDIENTE, BigDecimal.ZERO, false, null, null, 3L, null, null);
 
         when(casoPruebaService.obtener(id)).thenReturn(response);
 
@@ -184,7 +192,7 @@ class CasoPruebaControllerTest {
         CasoPruebaUpdateRequest request = new CasoPruebaUpdateRequest(
                 null, null, null, Criticidad.ALTA, EstadoCasoPrueba.EN_CURSO);
         CasoPruebaResponse response = new CasoPruebaResponse(
-                id, "Caso", "Desc", "Módulo", Criticidad.ALTA, EstadoCasoPrueba.EN_CURSO, BigDecimal.valueOf(9.0), 3L, null);
+                id, "Caso", "Desc", "Módulo", Criticidad.ALTA, EstadoCasoPrueba.EN_CURSO, BigDecimal.valueOf(9.0), false, null, null, 3L, null, null);
 
         when(casoPruebaService.actualizar(eq(id), any(CasoPruebaUpdateRequest.class))).thenReturn(response);
 
@@ -196,5 +204,79 @@ class CasoPruebaControllerTest {
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.estado").value("EN_CURSO"))
                 .andExpect(jsonPath("$.data.scorePrioridad").value(9.0));
+    }
+
+    @Test
+    @WithMockUser(roles = "QA_TESTER")
+    void verificarDuplicidad_deberiaRetornar200ConIndicadorDeDuplicidad() throws Exception {
+        VerificarDuplicidadRequest request = new VerificarDuplicidadRequest(
+                "Validar transferencia entre cuentas", "Transferencias");
+        DuplicidadResponse response = new DuplicidadResponse(true, 91L, new BigDecimal("0.82"));
+
+        when(casoPruebaService.verificarDuplicidad(any(VerificarDuplicidadRequest.class))).thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/casos-prueba/verificar-duplicidad")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.posibleDuplicado").value(true))
+                .andExpect(jsonPath("$.data.casoSimilarId").value(91))
+                .andExpect(jsonPath("$.data.porcentajeSimilitud").value(0.82));
+    }
+
+    @Test
+    @WithMockUser(roles = "QA_TESTER")
+    void confirmarNoDuplicado_deberiaRetornar200YCuerpoSuccess() throws Exception {
+        Long id = 104L;
+        CasoPruebaResponse response = new CasoPruebaResponse(
+                id, "Caso", "Desc", "Módulo", Criticidad.ALTA, EstadoCasoPrueba.PENDIENTE, BigDecimal.ZERO, false, null, null, 3L, null, null);
+
+        when(casoPruebaService.confirmarNoDuplicado(id)).thenReturn(response);
+
+        mockMvc.perform(put("/api/v1/casos-prueba/{id}/confirmar-no-duplicado", id)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.posibleDuplicado").value(false));
+    }
+
+    @Test
+    @WithMockUser(roles = "QA_TESTER")
+    void listarObsoletos_deberiaRetornar200ConLista() throws Exception {
+        List<CasoObsoletoResponse> obsoletos = List.of(
+                new CasoObsoletoResponse(63L, "Actualización de datos de contacto", LocalDate.of(2025, 10, 15))
+        );
+
+        when(casoPruebaService.listarObsoletos()).thenReturn(obsoletos);
+
+        mockMvc.perform(get("/api/v1/casos-prueba/obsoletos")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0].id").value(63))
+                .andExpect(jsonPath("$.data[0].titulo").value("Actualización de datos de contacto"))
+                .andExpect(jsonPath("$.data[0].ultimaActividad").value("2025-10-15"));
+    }
+
+    @Test
+    @WithMockUser(roles = "QA_TESTER")
+    void archivar_deberiaRetornar200ConEstadoArchivado() throws Exception {
+        Long id = 63L;
+        CasoPruebaResponse response = new CasoPruebaResponse(
+                id, "Caso", "Desc", "Módulo", Criticidad.ALTA, EstadoCasoPrueba.ARCHIVADO, BigDecimal.ZERO, false, null, null, 3L, null, null);
+
+        when(casoPruebaService.archivar(id)).thenReturn(response);
+
+        mockMvc.perform(put("/api/v1/casos-prueba/{id}/archivar", id)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.estado").value("ARCHIVADO"));
     }
 }
