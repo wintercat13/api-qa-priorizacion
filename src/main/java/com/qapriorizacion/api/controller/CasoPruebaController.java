@@ -5,6 +5,7 @@ import com.qapriorizacion.api.dto.request.CasoPruebaUpdateRequest;
 import com.qapriorizacion.api.dto.request.VerificarDuplicidadRequest;
 import com.qapriorizacion.api.dto.response.ApiResponse;
 import com.qapriorizacion.api.dto.response.CasoObsoletoResponse;
+import com.qapriorizacion.api.dto.response.CasoPriorizadoResponse;
 import com.qapriorizacion.api.dto.response.CasoPruebaResponse;
 import com.qapriorizacion.api.dto.response.DuplicidadResponse;
 import com.qapriorizacion.api.service.CasoPruebaService;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -84,5 +86,12 @@ public class CasoPruebaController {
     public ResponseEntity<ApiResponse<CasoPruebaResponse>> archivar(@PathVariable Long id) {
         CasoPruebaResponse archivado = casoPruebaService.archivar(id);
         return ResponseEntity.ok(ApiResponse.success(archivado));
+    }
+
+    @GetMapping("/priorizados")
+    public ResponseEntity<ApiResponse<List<CasoPriorizadoResponse>>> listarPriorizados(
+            @RequestParam(required = false) String modulo) {
+        List<CasoPriorizadoResponse> cola = casoPruebaService.listarColaPriorizada(modulo);
+        return ResponseEntity.ok(ApiResponse.success(cola));
     }
 }

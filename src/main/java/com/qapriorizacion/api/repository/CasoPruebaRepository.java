@@ -33,4 +33,8 @@ public interface CasoPruebaRepository extends JpaRepository<CasoPrueba, Long> {
     int marcarCasosObsoletos(
             @Param("estadosExcluidos") List<EstadoCasoPrueba> estadosExcluidos,
             @Param("fechaLimite") OffsetDateTime fechaLimite);
+
+    List<CasoPrueba> findByEstadoInOrderByScorePrioridadDesc(List<EstadoCasoPrueba> estados);
+
+    List<CasoPrueba> findByModuloIgnoreCaseAndEstadoInOrderByScorePrioridadDesc(String modulo, List<EstadoCasoPrueba> estados);
 }

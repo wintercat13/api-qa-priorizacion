@@ -5,6 +5,7 @@ import com.qapriorizacion.api.dto.request.CasoPruebaRequest;
 import com.qapriorizacion.api.dto.request.CasoPruebaUpdateRequest;
 import com.qapriorizacion.api.dto.request.VerificarDuplicidadRequest;
 import com.qapriorizacion.api.dto.response.CasoObsoletoResponse;
+import com.qapriorizacion.api.dto.response.CasoPriorizadoResponse;
 import com.qapriorizacion.api.dto.response.CasoPruebaResponse;
 import com.qapriorizacion.api.dto.response.DuplicidadResponse;
 import com.qapriorizacion.api.entity.enums.Criticidad;
@@ -278,5 +279,46 @@ class CasoPruebaControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.estado").value("ARCHIVADO"));
+    }
+
+    @Test
+    @WithMockUser(roles = "QA_TESTER")
+    void listarPriorizados_deberiaRetornar200ConColaOrdenadaPorScore() throws Exception {
+        List<CasoPriorizadoResponse> cola = List.of(
+                new CasoPriorizadoResponse(112L, "Bloqueo de tarjeta por fraude reportado", "Tarjetas", BigDecimal.valueOf(9.5)),
+                new CasoPriorizadoResponse(104L, "Validar transferencia entre cuentas propias", "Transferencias", BigDecimal.valueOf(9.2))
+        );
+
+        when(casoPruebaService.listarColaPriorizada(null)).thenReturn(cola);
+
+        mockMvc.perform(get("/api/v1/casos-prueba/priorizados")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].id").value(112))
+                .andExpect(jsonPath("$.data[0].scorePrioridad").value(9.5))
+                .andExpect(jsonPath("$.data[1].id").value(104));
+    }
+
+    @Test
+    @WithMockUser(roles = "QA_TESTER")
+    void listarPriorizados_deberiaAceptarFiltroPorModulo() throws Exception {
+        List<CasoPriorizadoResponse> cola = List.of(
+                new CasoPriorizadoResponse(104L, "Validar transferencia entre cuentas propias", "Transferencias", BigDecimal.valueOf(9.2))
+        );
+
+        when(casoPruebaService.listarColaPriorizada("Transferencias")).thenReturn(cola);
+
+        mockMvc.perform(get("/api/v1/casos-prueba/priorizados")
+                        .param("modulo", "Transferencias")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].modulo").value("Transferencias"));
     }
 }
