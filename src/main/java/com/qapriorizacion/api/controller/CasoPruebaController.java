@@ -2,8 +2,11 @@ package com.qapriorizacion.api.controller;
 
 import com.qapriorizacion.api.dto.request.CasoPruebaRequest;
 import com.qapriorizacion.api.dto.request.CasoPruebaUpdateRequest;
+import com.qapriorizacion.api.dto.request.VerificarDuplicidadRequest;
 import com.qapriorizacion.api.dto.response.ApiResponse;
+import com.qapriorizacion.api.dto.response.CasoObsoletoResponse;
 import com.qapriorizacion.api.dto.response.CasoPruebaResponse;
+import com.qapriorizacion.api.dto.response.DuplicidadResponse;
 import com.qapriorizacion.api.service.CasoPruebaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -56,5 +59,30 @@ public class CasoPruebaController {
             @Valid @RequestBody CasoPruebaUpdateRequest request) {
         CasoPruebaResponse actualizado = casoPruebaService.actualizar(id, request);
         return ResponseEntity.ok(ApiResponse.success(actualizado));
+    }
+
+    @PostMapping("/verificar-duplicidad")
+    public ResponseEntity<ApiResponse<DuplicidadResponse>> verificarDuplicidad(
+            @Valid @RequestBody VerificarDuplicidadRequest request) {
+        DuplicidadResponse resultado = casoPruebaService.verificarDuplicidad(request);
+        return ResponseEntity.ok(ApiResponse.success(resultado));
+    }
+
+    @PutMapping("/{id}/confirmar-no-duplicado")
+    public ResponseEntity<ApiResponse<CasoPruebaResponse>> confirmarNoDuplicado(@PathVariable Long id) {
+        CasoPruebaResponse actualizado = casoPruebaService.confirmarNoDuplicado(id);
+        return ResponseEntity.ok(ApiResponse.success(actualizado));
+    }
+
+    @GetMapping("/obsoletos")
+    public ResponseEntity<ApiResponse<List<CasoObsoletoResponse>>> listarObsoletos() {
+        List<CasoObsoletoResponse> obsoletos = casoPruebaService.listarObsoletos();
+        return ResponseEntity.ok(ApiResponse.success(obsoletos));
+    }
+
+    @PutMapping("/{id}/archivar")
+    public ResponseEntity<ApiResponse<CasoPruebaResponse>> archivar(@PathVariable Long id) {
+        CasoPruebaResponse archivado = casoPruebaService.archivar(id);
+        return ResponseEntity.ok(ApiResponse.success(archivado));
     }
 }
