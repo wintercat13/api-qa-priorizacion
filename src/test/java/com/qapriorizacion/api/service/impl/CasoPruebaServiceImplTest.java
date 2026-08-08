@@ -4,6 +4,7 @@ import com.qapriorizacion.api.dto.request.CasoPruebaRequest;
 import com.qapriorizacion.api.dto.request.CasoPruebaUpdateRequest;
 import com.qapriorizacion.api.dto.request.VerificarDuplicidadRequest;
 import com.qapriorizacion.api.dto.response.CasoObsoletoResponse;
+import com.qapriorizacion.api.dto.response.CasoPriorizadoResponse;
 import com.qapriorizacion.api.dto.response.CasoPruebaResponse;
 import com.qapriorizacion.api.dto.response.DuplicidadResponse;
 import com.qapriorizacion.api.entity.CasoPrueba;
@@ -375,6 +376,52 @@ class CasoPruebaServiceImplTest {
 
         assertThat(marcados).isEqualTo(5);
         verify(casoPruebaRepository).marcarCasosObsoletos(any(), any());
+    }
+
+    @Test
+    void listarColaPriorizada_deberiaRetornarCasosActivosOrdenadosPorScoreDescendente() {
+        Usuario responsable = Usuario.builder().id(1L).build();
+        Requisito requisito = Requisito.builder().id(3L).build();
+        CasoPrueba c1 = CasoPrueba.builder()
+                .id(1L).titulo("Caso bajo").modulo("Módulo A")
+                .criticidad(Criticidad.BAJA).estado(EstadoCasoPrueba.PENDIENTE)
+                .scorePrioridad(new BigDecimal("3.00")).responsable(responsable).requisito(requisito)
+                .build();
+        CasoPrueba c2 = CasoPrueba.builder()
+                .id(2L).titulo("Caso alto").modulo("Módulo B")
+                .criticidad(Criticidad.ALTA).estado(EstadoCasoPrueba.EN_CURSO)
+                .scorePrioridad(new BigDecimal("9.00")).responsable(responsable).requisito(requisito)
+                .build();
+
+        when(casoPruebaRepository.findByEstadoInOrderByScorePrioridadDesc(any()))
+                .thenReturn(List.of(c2, c1));
+
+        List<CasoPriorizadoResponse> response = casoPruebaService.listarColaPriorizada(null);
+
+        assertThat(response).hasSize(2);
+        assertThat(response.get(0).id()).isEqualTo(2L);
+        assertThat(response.get(0).scorePrioridad()).isEqualByComparingTo(new BigDecimal("9.00"));
+        assertThat(response.get(1).id()).isEqualTo(1L);
+    }
+
+    @Test
+    void listarColaPriorizada_deberiaFiltrarPorModulo() {
+        Usuario responsable = Usuario.builder().id(1L).build();
+        Requisito requisito = Requisito.builder().id(3L).build();
+        CasoPrueba c1 = CasoPrueba.builder()
+                .id(1L).titulo("Caso Transferencias").modulo("Transferencias")
+                .criticidad(Criticidad.ALTA).estado(EstadoCasoPrueba.PENDIENTE)
+                .scorePrioridad(new BigDecimal("9.00")).responsable(responsable).requisito(requisito)
+                .build();
+
+        when(casoPruebaRepository.findByModuloIgnoreCaseAndEstadoInOrderByScorePrioridadDesc("Transferencias", List.of(
+                EstadoCasoPrueba.PENDIENTE, EstadoCasoPrueba.EN_CURSO, EstadoCasoPrueba.BLOQUEADO)))
+                .thenReturn(List.of(c1));
+
+        List<CasoPriorizadoResponse> response = casoPruebaService.listarColaPriorizada("Transferencias");
+
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).modulo()).isEqualTo("Transferencias");
     }
 
     @Test
