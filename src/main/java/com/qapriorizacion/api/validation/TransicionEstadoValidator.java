@@ -10,9 +10,12 @@ import java.util.Set;
 public class TransicionEstadoValidator {
 
     private static final Map<EstadoCasoPrueba, Set<EstadoCasoPrueba>> TRANSICIONES_PERMITIDAS = Map.of(
-            EstadoCasoPrueba.PENDIENTE, Set.of(EstadoCasoPrueba.EN_CURSO),
-            EstadoCasoPrueba.EN_CURSO, Set.of(EstadoCasoPrueba.EJECUTADO, EstadoCasoPrueba.BLOQUEADO),
-            EstadoCasoPrueba.BLOQUEADO, Set.of(EstadoCasoPrueba.EN_CURSO, EstadoCasoPrueba.EJECUTADO)
+            EstadoCasoPrueba.PENDIENTE, Set.of(EstadoCasoPrueba.EN_CURSO, EstadoCasoPrueba.OBSOLETO),
+            EstadoCasoPrueba.EN_CURSO, Set.of(EstadoCasoPrueba.EJECUTADO, EstadoCasoPrueba.BLOQUEADO, EstadoCasoPrueba.OBSOLETO),
+            EstadoCasoPrueba.BLOQUEADO, Set.of(EstadoCasoPrueba.EN_CURSO, EstadoCasoPrueba.EJECUTADO, EstadoCasoPrueba.OBSOLETO),
+            EstadoCasoPrueba.EJECUTADO, Set.of(EstadoCasoPrueba.OBSOLETO),
+            EstadoCasoPrueba.OBSOLETO, Set.of(EstadoCasoPrueba.PENDIENTE, EstadoCasoPrueba.EN_CURSO, EstadoCasoPrueba.ARCHIVADO),
+            EstadoCasoPrueba.ARCHIVADO, Set.of()
     );
 
     public boolean esValida(EstadoCasoPrueba actual, EstadoCasoPrueba nuevo) {

@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.ForeignKey;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -57,15 +58,21 @@ public class CasoPrueba {
     @Column(name = "posible_duplicado", nullable = false)
     private boolean posibleDuplicado;
 
+    @Column(name = "caso_similar_id")
+    private Long casoSimilarId;
+
+    @Column(name = "porcentaje_similitud", precision = 5, scale = 4)
+    private BigDecimal porcentajeSimilitud;
+
     @Column(name = "contador_fallos", nullable = false)
     private int contadorFallos;
 
     @ManyToOne
-    @JoinColumn(name = "responsable_id", nullable = false)
+    @JoinColumn(name = "responsable_id", nullable = false, foreignKey = @ForeignKey(name = "fk_caso_prueba_responsable"))
     private Usuario responsable;
 
     @ManyToOne
-    @JoinColumn(name = "requisito_id", nullable = false)
+    @JoinColumn(name = "requisito_id", nullable = false, foreignKey = @ForeignKey(name = "fk_caso_prueba_requisito"))
     private Requisito requisito;
 
     @Column(name = "fecha_creacion", nullable = false, insertable = false, updatable = false)

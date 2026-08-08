@@ -14,7 +14,11 @@ public record CasoPruebaResponse(
         Criticidad criticidad,
         EstadoCasoPrueba estado,
         BigDecimal scorePrioridad,
+        boolean posibleDuplicado,
+        Long casoSimilarId,
+        BigDecimal porcentajeSimilitud,
         Long requisitoId,
-        OffsetDateTime fechaActualizacion
+        OffsetDateTime fechaActualizacion,
+        OffsetDateTime fechaUltimaActividad
 ) {
 }
