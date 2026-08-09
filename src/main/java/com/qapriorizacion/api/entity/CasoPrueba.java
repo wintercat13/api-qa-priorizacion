@@ -81,6 +81,6 @@ public class CasoPrueba {
     @Column(name = "fecha_actualizacion", nullable = false, insertable = false, updatable = false)
     private OffsetDateTime fechaActualizacion;
 
-    @Column(name = "fecha_ultima_actividad", nullable = false, insertable = false, updatable = false)
+    @Column(name = "fecha_ultima_actividad", nullable = false)
     private OffsetDateTime fechaUltimaActividad;
 }
