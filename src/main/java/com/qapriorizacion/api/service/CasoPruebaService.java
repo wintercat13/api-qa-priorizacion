@@ -31,4 +31,6 @@ public interface CasoPruebaService {
     int ejecutarRevisionObsolescencia();
 
     List<CasoPriorizadoResponse> listarColaPriorizada(String modulo);
+
+    int recalcularScores();
 }
