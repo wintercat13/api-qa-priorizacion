@@ -190,6 +190,22 @@ public class CasoPruebaServiceImpl implements CasoPruebaService {
                 .toList();
     }
 
+    @Override
+    @Transactional
+    public int recalcularScores() {
+        List<CasoPrueba> casos = casoPruebaRepository.findAll();
+        int recalculados = 0;
+        for (CasoPrueba caso : casos) {
+            BigDecimal nuevoScore = prioridadService.calcularScore(caso.getCriticidad(), caso.getContadorFallos());
+            if (nuevoScore.compareTo(caso.getScorePrioridad()) != 0) {
+                caso.setScorePrioridad(nuevoScore);
+                casoPruebaRepository.save(caso);
+                recalculados++;
+            }
+        }
+        return recalculados;
+    }
+
     private void evaluarDuplicidad(CasoPrueba caso) {
         buscarMejorCoincidencia(caso.getTitulo(), caso.getModulo(), caso.getId())
                 .ifPresentOrElse(resultado -> {
