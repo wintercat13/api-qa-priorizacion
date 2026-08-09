@@ -62,4 +62,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(ErrorResponse.of(ex.getMessage()));
     }
+
+    @ExceptionHandler(SumaPesosInvalidaException.class)
+    public ResponseEntity<ErrorResponse> handleSumaPesosInvalida(SumaPesosInvalidaException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(ErrorResponse.of(ex.getMessage()));
+    }
 }
