@@ -68,4 +68,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(ErrorResponse.of(ex.getMessage()));
     }
+
+    @ExceptionHandler(SinDatosReporteException.class)
+    public ResponseEntity<ErrorResponse> handleSinDatosReporte(SinDatosReporteException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of(ex.getMessage()));
+    }
 }
