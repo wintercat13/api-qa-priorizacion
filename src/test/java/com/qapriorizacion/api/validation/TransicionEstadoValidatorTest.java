@@ -26,12 +26,12 @@ class TransicionEstadoValidatorTest {
     }
 
     @Test
-    void esValida_deberiaRechazarPendienteAEjecutado() {
-        assertThat(validator.esValida(EstadoCasoPrueba.PENDIENTE, EstadoCasoPrueba.EJECUTADO)).isFalse();
+    void esValida_deberiaPermitirEjecutadoAObsoleto() {
+        assertThat(validator.esValida(EstadoCasoPrueba.EJECUTADO, EstadoCasoPrueba.OBSOLETO)).isTrue();
     }
 
     @Test
-    void esValida_deberiaRechazarEjecutadoACualquierOtro() {
+    void esValida_deberiaRechazarEjecutadoAEnCurso() {
         assertThat(validator.esValida(EstadoCasoPrueba.EJECUTADO, EstadoCasoPrueba.EN_CURSO)).isFalse();
     }
 }
