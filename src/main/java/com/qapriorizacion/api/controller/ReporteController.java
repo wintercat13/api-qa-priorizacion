@@ -26,16 +26,20 @@ public class ReporteController {
     public ResponseEntity<byte[]> exportar(
             @RequestParam String formato,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(required = false) Long responsableId,
+            @RequestParam(required = false) String modulo,
+            @RequestParam(required = false) String prioridad,
+            @RequestParam(required = false) String estado) {
         if (!"pdf".equalsIgnoreCase(formato)) {
             throw new IllegalArgumentException("Formato no soportado: " + formato);
         }
 
-        byte[] contenido = reporteService.generarReportePdf(desde, hasta);
+        byte[] contenido = reporteService.generarReportePdf(desde, hasta, responsableId, modulo, prioridad, estado);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("attachment", "reporte_qa_semana.pdf");
+        headers.setContentDispositionFormData("attachment", reporteService.generarNombreArchivo(desde, hasta));
 
         return ResponseEntity.ok()
                 .headers(headers)

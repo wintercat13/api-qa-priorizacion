@@ -41,7 +41,8 @@ class ReporteControllerTest {
     @WithMockUser(roles = "ADMINISTRADOR_QA")
     void exportar_deberiaRetornar200ConPdf_cuandoFormatoEsPdf() throws Exception {
         byte[] pdf = "%PDF-1.4\n".getBytes();
-        when(reporteService.generarReportePdf(null, null)).thenReturn(pdf);
+        when(reporteService.generarReportePdf(null, null, null, null, null, null)).thenReturn(pdf);
+        when(reporteService.generarNombreArchivo(null, null)).thenReturn("reporte_qa_sin_fecha_sin_fecha.pdf");
 
         mockMvc.perform(get("/api/v1/reportes/export")
                         .param("formato", "pdf")
@@ -49,7 +50,7 @@ class ReporteControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/pdf"))
-                .andExpect(header().string("Content-Disposition", "form-data; name=\"attachment\"; filename=\"reporte_qa_semana.pdf\""));
+                .andExpect(header().string("Content-Disposition", "form-data; name=\"attachment\"; filename=\"reporte_qa_sin_fecha_sin_fecha.pdf\""));
     }
 
     @Test

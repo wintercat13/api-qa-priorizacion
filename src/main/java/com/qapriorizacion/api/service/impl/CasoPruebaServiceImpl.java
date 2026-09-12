@@ -57,6 +57,7 @@ public class CasoPruebaServiceImpl implements CasoPruebaService {
         Requisito requisito = requisitoRepository.findById(request.requisitoId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Requisito no encontrado"));
 
+        OffsetDateTime ahora = OffsetDateTime.now(ZoneOffset.UTC);
         CasoPrueba caso = CasoPrueba.builder()
                 .titulo(request.titulo().trim())
                 .descripcion(request.descripcion())
@@ -68,6 +69,7 @@ public class CasoPruebaServiceImpl implements CasoPruebaService {
                 .contadorFallos(0)
                 .responsable(responsable)
                 .requisito(requisito)
+                .fechaUltimaActividad(ahora)
                 .build();
 
         CasoPrueba guardado = casoPruebaRepository.save(caso);
@@ -99,6 +101,7 @@ public class CasoPruebaServiceImpl implements CasoPruebaService {
         Optional.ofNullable(request.modulo()).ifPresent(v -> caso.setModulo(v.trim()));
         caso.setCriticidad(request.criticidad());
         caso.setEstado(request.estado());
+        caso.setFechaUltimaActividad(OffsetDateTime.now(ZoneOffset.UTC));
 
         BigDecimal nuevoScore = prioridadService.calcularScore(caso.getCriticidad(), caso.getContadorFallos());
         caso.setScorePrioridad(nuevoScore);
