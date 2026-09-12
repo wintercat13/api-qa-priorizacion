@@ -321,4 +321,62 @@ class CasoPruebaControllerTest {
                 .andExpect(jsonPath("$.data.length()").value(1))
                 .andExpect(jsonPath("$.data[0].modulo").value("Transferencias"));
     }
+
+    @Test
+    @WithMockUser(roles = "DESARROLLADOR")
+    void listar_deberiaPermitirAccesoADesarrollador() throws Exception {
+        when(casoPruebaService.listar()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/v1/casos-prueba")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "DESARROLLADOR")
+    void obtener_deberiaPermitirAccesoADesarrollador() throws Exception {
+        Long id = 104L;
+        CasoPruebaResponse response = new CasoPruebaResponse(
+                id, "Caso", "Desc", "Módulo", Criticidad.ALTA, EstadoCasoPrueba.PENDIENTE, BigDecimal.ZERO, false, null, null, 3L, null, null);
+
+        when(casoPruebaService.obtener(id)).thenReturn(response);
+
+        mockMvc.perform(get("/api/v1/casos-prueba/{id}", id)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "DESARROLLADOR")
+    void listarObsoletos_deberiaPermitirAccesoADesarrollador() throws Exception {
+        when(casoPruebaService.listarObsoletos()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/v1/casos-prueba/obsoletos")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "DESARROLLADOR")
+    void listarPriorizados_deberiaRetornar403_cuandoRolEsDesarrollador() throws Exception {
+        mockMvc.perform(get("/api/v1/casos-prueba/priorizados")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "DESARROLLADOR")
+    void crear_deberiaRetornar403_cuandoRolEsDesarrollador() throws Exception {
+        CasoPruebaRequest request = new CasoPruebaRequest("Título", "Desc", "Módulo", Criticidad.ALTA, 3L);
+
+        mockMvc.perform(post("/api/v1/casos-prueba")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
 }

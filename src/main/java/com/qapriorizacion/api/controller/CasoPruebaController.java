@@ -30,12 +30,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/casos-prueba")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('QA_TESTER', 'ADMINISTRADOR_QA')")
 public class CasoPruebaController {
 
     private final CasoPruebaService casoPruebaService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('QA_TESTER', 'ADMINISTRADOR_QA')")
     public ResponseEntity<ApiResponse<CasoPruebaResponse>> crear(
             @Valid @RequestBody CasoPruebaRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -44,18 +44,21 @@ public class CasoPruebaController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('QA_TESTER', 'ADMINISTRADOR_QA', 'DESARROLLADOR')")
     public ResponseEntity<ApiResponse<List<CasoPruebaResponse>>> listar() {
         List<CasoPruebaResponse> casos = casoPruebaService.listar();
         return ResponseEntity.ok(ApiResponse.success(casos));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('QA_TESTER', 'ADMINISTRADOR_QA', 'DESARROLLADOR')")
     public ResponseEntity<ApiResponse<CasoPruebaResponse>> obtener(@PathVariable Long id) {
         CasoPruebaResponse caso = casoPruebaService.obtener(id);
         return ResponseEntity.ok(ApiResponse.success(caso));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('QA_TESTER', 'ADMINISTRADOR_QA')")
     public ResponseEntity<ApiResponse<CasoPruebaResponse>> actualizar(
             @PathVariable Long id,
             @Valid @RequestBody CasoPruebaUpdateRequest request) {
@@ -64,6 +67,7 @@ public class CasoPruebaController {
     }
 
     @PostMapping("/verificar-duplicidad")
+    @PreAuthorize("hasAnyRole('QA_TESTER', 'ADMINISTRADOR_QA')")
     public ResponseEntity<ApiResponse<DuplicidadResponse>> verificarDuplicidad(
             @Valid @RequestBody VerificarDuplicidadRequest request) {
         DuplicidadResponse resultado = casoPruebaService.verificarDuplicidad(request);
@@ -71,24 +75,28 @@ public class CasoPruebaController {
     }
 
     @PutMapping("/{id}/confirmar-no-duplicado")
+    @PreAuthorize("hasAnyRole('QA_TESTER', 'ADMINISTRADOR_QA')")
     public ResponseEntity<ApiResponse<CasoPruebaResponse>> confirmarNoDuplicado(@PathVariable Long id) {
         CasoPruebaResponse actualizado = casoPruebaService.confirmarNoDuplicado(id);
         return ResponseEntity.ok(ApiResponse.success(actualizado));
     }
 
     @GetMapping("/obsoletos")
+    @PreAuthorize("hasAnyRole('QA_TESTER', 'ADMINISTRADOR_QA', 'DESARROLLADOR')")
     public ResponseEntity<ApiResponse<List<CasoObsoletoResponse>>> listarObsoletos() {
         List<CasoObsoletoResponse> obsoletos = casoPruebaService.listarObsoletos();
         return ResponseEntity.ok(ApiResponse.success(obsoletos));
     }
 
     @PutMapping("/{id}/archivar")
+    @PreAuthorize("hasAnyRole('QA_TESTER', 'ADMINISTRADOR_QA')")
     public ResponseEntity<ApiResponse<CasoPruebaResponse>> archivar(@PathVariable Long id) {
         CasoPruebaResponse archivado = casoPruebaService.archivar(id);
         return ResponseEntity.ok(ApiResponse.success(archivado));
     }
 
     @GetMapping("/priorizados")
+    @PreAuthorize("hasAnyRole('QA_TESTER', 'ADMINISTRADOR_QA')")
     public ResponseEntity<ApiResponse<List<CasoPriorizadoResponse>>> listarPriorizados(
             @RequestParam(required = false) String modulo) {
         List<CasoPriorizadoResponse> cola = casoPruebaService.listarColaPriorizada(modulo);

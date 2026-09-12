@@ -27,7 +27,7 @@ class SimilitudServiceImplTest {
     void calcularSimilitud_deberiaSerMayorQueSetenta_cuandoTextosSonMuySimilares() {
         BigDecimal resultado = similitudService.calcularSimilitud(
                 "Validar transferencia entre cuentas del mismo titular",
-                "Validar transferencia entre cuentas del mismo titular");
+                "Validar transferencia entre cuentas mismo titular");
         assertThat(resultado).isGreaterThanOrEqualTo(new BigDecimal("0.70"));
     }
 

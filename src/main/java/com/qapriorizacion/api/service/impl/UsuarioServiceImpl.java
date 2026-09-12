@@ -9,6 +9,7 @@ import com.qapriorizacion.api.repository.UsuarioRepository;
 import com.qapriorizacion.api.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +19,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService {
 
+    private static final String PASSWORD_DEFAULT = "password123";
+
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -28,7 +32,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .correo(request.correo().trim().toLowerCase())
                 .rol(request.rol())
                 .activo(true)
-                .passwordHash("PLACEHOLDER")
+                .passwordHash(passwordEncoder.encode(PASSWORD_DEFAULT))
                 .build();
 
         try {
