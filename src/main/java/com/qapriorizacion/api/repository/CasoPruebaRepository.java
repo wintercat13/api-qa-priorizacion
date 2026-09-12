@@ -37,4 +37,10 @@ public interface CasoPruebaRepository extends JpaRepository<CasoPrueba, Long> {
     List<CasoPrueba> findByEstadoInOrderByScorePrioridadDesc(List<EstadoCasoPrueba> estados);
 
     List<CasoPrueba> findByModuloIgnoreCaseAndEstadoInOrderByScorePrioridadDesc(String modulo, List<EstadoCasoPrueba> estados);
+
+    long countByEstado(EstadoCasoPrueba estado);
+
+    long countByEstadoNot(EstadoCasoPrueba estado);
+
+    long countByEstadoIn(List<EstadoCasoPrueba> estados);
 }

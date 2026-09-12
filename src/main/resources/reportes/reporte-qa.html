@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Reporte QA</title>
+    <style>
+        @page { size: A4; margin: 30px; }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #212529; margin: 0; padding: 0; }
+        .header { margin-bottom: 20px; }
+        .header h1 { font-size: 28px; margin: 0 0 5px; }
+        .header .periodo { font-size: 14px; color: #6c757d; margin: 0 0 10px; }
+        .filters { margin-bottom: 20px; }
+        .filters table { border-collapse: collapse; }
+        .filters td { padding: 2px 10px 2px 0; font-size: 12px; }
+        .filters .label { color: #6c757d; font-weight: bold; }
+        .section-title { font-size: 16px; font-weight: bold; margin: 20px 0 10px; }
+        .kpis { width: 100%; margin-bottom: 15px; }
+        .kpi { width: 25%; vertical-align: top; padding-right: 15px; }
+        .kpi-label { font-size: 10px; color: #6c757d; font-weight: bold; text-transform: uppercase; }
+        .kpi-value { font-size: 22px; font-weight: bold; margin: 5px 0; }
+        .progress { width: 100%; height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden; }
+        .progress-bar { height: 100%; background: #0F8B8D; border-radius: 3px; }
+        .chart { margin: 10px 0; text-align: center; }
+        .chart img { max-width: 100%; width: 100%; height: auto; display: block; }
+        .charts-row { width: 100%; }
+        .chart-col { width: 55%; vertical-align: top; padding-right: 15px; }
+        .chart-col-right { width: 45%; vertical-align: top; }
+        .chart-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
+        .chart-subtitle { font-size: 11px; color: #6c757d; margin-bottom: 8px; }
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px; }
+        .detail-table th { background: #343a40; color: white; padding: 6px; text-align: left; font-weight: bold; }
+        .detail-table td { padding: 6px; border-bottom: 1px solid #dee2e6; }
+        .detail-table tr:nth-child(even) { background: #f8f9fa; }
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 10px; font-size: 9px; font-weight: bold; text-transform: uppercase; }
+        .badge-prioridad-alta { background: #f8d7da; color: #842029; }
+        .badge-prioridad-media { background: #fff3cd; color: #664d03; }
+        .badge-prioridad-baja { background: #d1ecf1; color: #055160; }
+        .badge-estado-ejecutado { background: #d1e7dd; color: #0f5132; }
+        .badge-estado-pendiente { background: #fff3cd; color: #664d03; }
+        .badge-estado-en-curso { background: #cff4fc; color: #055160; }
+        .badge-estado-bloqueado { background: #f8d7da; color: #842029; }
+        .badge-estado-obsoleto { background: #e2e3e5; color: #41464b; }
+        .badge-estado-archivado { background: #e2e3e5; color: #41464b; }
+        .results-count { text-align: right; font-size: 11px; color: #6c757d; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Reporte QA</h1>
+        <p class="periodo">${periodo}</p>
+    </div>
+
+    <div class="filters">
+        <table>
+            ${filtros}
+        </table>
+    </div>
+
+    <div class="section-title">Métricas principales</div>
+    <table class="kpis">
+        <tr>
+            <td class="kpi">
+                <div class="kpi-label">Cobertura</div>
+                <div class="kpi-value">${cobertura}%</div>
+                <div class="progress"><div class="progress-bar" style="width: ${cobertura}%;"></div></div>
+            </td>
+            <td class="kpi">
+                <div class="kpi-label">% Ejecutado</div>
+                <div class="kpi-value">${porcentajeEjecutado}%</div>
+                <div class="progress"><div class="progress-bar" style="width: ${porcentajeEjecutado}%;"></div></div>
+            </td>
+            <td class="kpi">
+                <div class="kpi-label">Casos obsoletos depurados</div>
+                <div class="kpi-value">${casosObsoletosDepurados}</div>
+            </td>
+            <td class="kpi">
+                <div class="kpi-label">Cumplimiento SLA</div>
+                <div class="kpi-value">${cumplimientoSLA}%</div>
+                <div class="progress"><div class="progress-bar" style="width: ${cumplimientoSLA}%;"></div></div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">Tendencias</div>
+    <div class="chart-subtitle">Evolución de casos en el período</div>
+    <div class="chart">
+        <img src="${tendenciasChart}" alt="Tendencias"/>
+    </div>
+
+    <table class="charts-row">
+        <tr>
+            <td class="chart-col">
+                <div class="chart-title">Casos por módulo</div>
+                <div class="chart-subtitle">Distribución en el período</div>
+                <div class="chart">
+                    <img src="${modulosChart}" alt="Casos por módulo" width="380" height="172"/>
+                </div>
+            </td>
+            <td class="chart-col-right">
+                <div class="chart-title">Estado de ejecución</div>
+                <div class="chart-subtitle">Acumulado del período</div>
+                <div class="chart">
+                    <img src="${estadoChart}" alt="Estado de ejecución" width="280" height="280"/>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div style="page-break-before: always;"></div>
+
+    <div class="section-title">Detalle de casos de prueba</div>
+    <div class="results-count">${cantidadCasos} resultados</div>
+    <table class="detail-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Módulo</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${filasCasos}
+        </tbody>
+    </table>
+</body>
+</html>
